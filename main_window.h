@@ -1,14 +1,18 @@
 #ifndef MAIN_WINDOW_H
 #define MAIN_WINDOW_H
 
+#include "spell_checker.h"
 #include "text_transform.h"
 
 #include <QDialog>
 #include <QMainWindow>
+#include <QPoint>
 #include <QString>
 #include <QTextDocument>
 #include <QTextEdit>
 #include <memory>
+#include <set>
+#include <string>
 #include <vector>
 
 namespace Ui {
@@ -16,12 +20,16 @@ class find_replace_dialog;
 class word_frequency_dialog;
 }
 
+class spell_checker_highlighter;
+
 class main_window : public QMainWindow {
 public:
     main_window();
     ~main_window() override;
 
 private:
+    void load_words();
+
     void setup_file_menu();
     void setup_edit_menu();
     void setup_format_menu();
@@ -34,6 +42,8 @@ private:
     void save_file();
     void save_file_as();
     void update_title();
+
+    void setup_context_menu(const QPoint& pos);
 
     void apply_transform(const text_transform& transform) const;
 
@@ -52,6 +62,11 @@ private:
 
     QDialog* find_replace_dlg { nullptr };
     std::unique_ptr<Ui::find_replace_dialog> find_replace_ui;
+
+    std::set<std::string> words;
+    std::unique_ptr<spell_checker> checker;
+
+    spell_checker_highlighter* highlighter { nullptr };
 };
 
 #endif // MAIN_WINDOW_H

@@ -1,6 +1,8 @@
 #include "main_window.h"
 
 #include "notepad_exception.h"
+#include "spell_checker.h"
+#include "spell_checker_highlighter.h"
 
 #include "ui_find_replace_dialog.h"
 #include "ui_word_frequency_dialog.h"
@@ -12,16 +14,22 @@
 #include <QFont>
 #include <QHeaderView>
 #include <QKeySequence>
+#include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QStatusBar>
 #include <QTableWidgetItem>
 #include <QTextCharFormat>
+#include <QTextCursor>
 #include <QTextDocument>
 #include <QTextStream>
 #include <QToolBar>
+#include <QSyntaxHighlighter>
 #include <algorithm>
+#include <cctype>
+#include <fstream>
+#include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
@@ -42,6 +50,15 @@ main_window::main_window()
     transforms.push_back(std::make_unique<sentence_case_transform>());
     transforms.push_back(std::make_unique<swap_case_transform>());
 
+    load_words();
+
+    checker = std::make_unique<spell_checker>(words);
+    highlighter = new spell_checker_highlighter(editor->document(), &words);
+
+    editor->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(editor, &QWidget::customContextMenuRequested,
+        this, &main_window::setup_context_menu);
+
     setup_file_menu();
     setup_edit_menu();
     setup_format_menu();
@@ -53,6 +70,16 @@ main_window::main_window()
 }
 
 main_window::~main_window() = default;
+
+void main_window::load_words()
+{
+    std::ifstream words_file("data/words.txt");
+
+    std::string word;
+    while (words_file >> word) {
+        words.insert(word);
+    }
+}
 
 void main_window::setup_file_menu()
 {
@@ -191,6 +218,11 @@ void main_window::setup_tools_menu()
 {
     auto* tools_menu = menuBar()->addMenu("Tools");
 
+    const auto* action_check_spelling = tools_menu->addAction("Check Spelling...");
+    connect(action_check_spelling, &QAction::triggered, this, [this] {
+        highlighter->rehighlight();
+    });
+
     const auto* action_word_freq = tools_menu->addAction("Word Frequency...");
     connect(action_word_freq, &QAction::triggered, this, [this] {
         show_word_frequency();
@@ -229,6 +261,37 @@ void main_window::apply_transform(const text_transform& transform) const
     }
     cursor.endEditBlock();
 }
+
+void main_window::setup_context_menu(const QPoint& pos)
+{
+    QTextCursor cursor = editor->cursorForPosition(pos);
+    cursor.select(QTextCursor::WordUnderCursor);
+    std::string word = cursor.selectedText().toStdString();
+
+    QMenu* menu = editor->createStandardContextMenu();
+
+    std::string normalized = spell_checker::normalize_word(word);
+    if (!normalized.empty() && words.find(normalized) == words.end()) {
+        std::vector<std::string> suggestions = checker->get_suggestions(word);
+        QAction* first = menu->actions().isEmpty() ? nullptr : menu->actions().first();
+
+        for (const std::string& s : suggestions) {
+            QString text = QString::fromStdString(s);
+            QAction* action = new QAction(text, menu);
+            connect(action, &QAction::triggered, this, [cursor, text]() mutable {
+                cursor.insertText(text);
+            });
+            menu->insertAction(first, action);
+        }
+        if (!suggestions.empty()) {
+            menu->insertSeparator(first);
+        }
+    }
+
+    menu->exec(editor->viewport()->mapToGlobal(pos));
+    delete menu;
+}
+
 
 void main_window::open_file()
 {
