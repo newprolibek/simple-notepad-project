@@ -37,6 +37,7 @@ private:
     void setup_format_toolbar();
     void setup_search_menu();
     void setup_tools_menu();
+    void setup_view_menu();
     void setup_status_bar();
 
     void open_file();
@@ -60,6 +61,7 @@ private:
     void show_word_frequency();
 
     QTextEdit* editor { nullptr };
+    qreal default_font_point_size { 0 };
     QString current_file;
     std::vector<std::unique_ptr<text_transform>> transforms;
 
