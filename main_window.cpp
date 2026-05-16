@@ -154,6 +154,11 @@ void main_window::setup_format_menu()
 {
     auto* format_menu = menuBar()->addMenu("Format");
     auto* text_case_menu = format_menu->addMenu("Text Case");
+    auto* action_text_color = format_menu->addAction("Text Color...");
+
+    connect(action_text_color, &QAction::triggered, this, [this] {
+        change_color();
+    });
 
     for (const auto& transform : transforms) {
         const auto* action = text_case_menu->addAction(QString::fromStdString(transform->name()));
@@ -260,6 +265,23 @@ void main_window::apply_transform(const text_transform& transform) const
         }
     }
     cursor.endEditBlock();
+}
+
+void main_window::change_color()
+{
+    QColor color = QColorDialog::getColor(Qt::white, this, "Select Color");
+
+    if (!color.isValid()) return;
+
+    auto cursor = editor->textCursor();
+    if (!cursor.hasSelection()) {
+        cursor.select(QTextCursor::Document);
+    }
+
+    QTextCharFormat format;
+    format.setForeground(color);
+    cursor.mergeCharFormat(format);
+    editor->setTextCursor(cursor);
 }
 
 void main_window::setup_context_menu(const QPoint& pos)

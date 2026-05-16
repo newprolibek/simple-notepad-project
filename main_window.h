@@ -10,6 +10,7 @@
 #include <QString>
 #include <QTextDocument>
 #include <QTextEdit>
+#include <QColorDialog>
 #include <memory>
 #include <set>
 #include <string>
@@ -47,6 +48,8 @@ private:
 
     void apply_transform(const text_transform& transform) const;
 
+    void change_color();
+
     void show_find_replace_dialog();
     void find_next(const QString& term, QTextDocument::FindFlags flags = QTextDocument::FindFlags()) const;
     void replace_current(const QString& term, const QString& replacement,
@@ -62,6 +65,8 @@ private:
 
     QDialog* find_replace_dlg { nullptr };
     std::unique_ptr<Ui::find_replace_dialog> find_replace_ui;
+
+    QColorDialog* text_color_dlg { nullptr };
 
     std::set<std::string> words;
     std::unique_ptr<spell_checker> checker;
