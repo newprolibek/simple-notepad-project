@@ -266,6 +266,16 @@ void main_window::setup_status_bar()
         statusBar()->showMessage(QString("Words: %1  Lines: %2").arg(words).arg(lines));
     });
     statusBar()->showMessage("Words: 0  Lines: 1");
+
+    cursor_position_label = new QLabel(this);
+    statusBar()->addPermanentWidget(cursor_position_label);
+    connect(editor, &QTextEdit::cursorPositionChanged, this, [this] {
+        const auto cursor = editor->textCursor();
+        const int line = cursor.blockNumber() + 1;
+        const int col = cursor.positionInBlock() + 1;
+        cursor_position_label->setText(QString("Line: %1  Col: %2").arg(line).arg(col));
+    });
+    cursor_position_label->setText("Line: 1  Col: 1");
 }
 
 void main_window::apply_transform(const text_transform& transform) const

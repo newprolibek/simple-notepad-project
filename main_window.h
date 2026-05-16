@@ -5,6 +5,7 @@
 #include "text_transform.h"
 
 #include <QDialog>
+#include <QLabel>
 #include <QMainWindow>
 #include <QPoint>
 #include <QString>
@@ -62,6 +63,7 @@ private:
 
     QTextEdit* editor { nullptr };
     qreal default_font_point_size { 0 };
+    QLabel* cursor_position_label { nullptr };
     QString current_file;
     std::vector<std::unique_ptr<text_transform>> transforms;
 
