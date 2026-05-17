@@ -50,6 +50,7 @@ private:
 
     void apply_transform(const text_transform& transform) const;
 
+    void change_font();
     void change_color();
 
     void show_find_replace_dialog();

@@ -12,6 +12,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QFont>
+#include <QFontDialog>
 #include <QHeaderView>
 #include <QKeySequence>
 #include <QMenu>
@@ -157,9 +158,14 @@ void main_window::setup_format_menu()
     auto* format_menu = menuBar()->addMenu("Format");
     auto* text_case_menu = format_menu->addMenu("Text Case");
     auto* action_text_color = format_menu->addAction("Text Color...");
+    auto* action_font = format_menu->addAction("Font...");
 
     connect(action_text_color, &QAction::triggered, this, [this] {
         change_color();
+    });
+
+    connect(action_font, &QAction::triggered, this, [this] {
+        change_font();
     });
 
     for (const auto& transform : transforms) {
@@ -313,6 +319,24 @@ void main_window::change_color()
 
     QTextCharFormat format;
     format.setForeground(color);
+    cursor.mergeCharFormat(format);
+    editor->setTextCursor(cursor);
+}
+
+void main_window::change_font()
+{
+    bool ok = false;
+    QFont font = QFontDialog::getFont(&ok, QFont("Helvetica [Cronyx]", 10), this);
+
+    if (!ok) return;
+
+    auto cursor = editor->textCursor();
+    if (!cursor.hasSelection()) {
+        cursor.select(QTextCursor::Document);
+    }
+
+    QTextCharFormat format;
+    format.setFont(font);
     cursor.mergeCharFormat(format);
     editor->setTextCursor(cursor);
 }
