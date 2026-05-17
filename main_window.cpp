@@ -411,7 +411,7 @@ void main_window::save_file()
             throw file_not_found_exception(current_file.toStdString());
         }
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            throw file_read_exception(current_file.toStdString());
+            throw file_write_exception(current_file.toStdString());
         }
         QTextStream out(&file);
         out << editor->toPlainText();
