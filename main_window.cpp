@@ -326,19 +326,12 @@ void main_window::change_color()
 void main_window::change_font()
 {
     bool ok = false;
-    QFont font = QFontDialog::getFont(&ok, QFont("Helvetica [Cronyx]", 10), this);
+    QFont font = QFontDialog::getFont(&ok, editor->font(), this);
 
     if (!ok) return;
 
-    auto cursor = editor->textCursor();
-    if (!cursor.hasSelection()) {
-        cursor.select(QTextCursor::Document);
-    }
-
-    QTextCharFormat format;
-    format.setFont(font);
-    cursor.mergeCharFormat(format);
-    editor->setTextCursor(cursor);
+    editor->setFont(font);
+    default_font_point_size = font.pointSizeF();
 }
 
 void main_window::setup_context_menu(const QPoint& pos)
